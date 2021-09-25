@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Organizador de Curso</title>
+
+	<style type="text/css">
+        :root {
+            --back: #ffffff;
+            --text: #000000;
+            --calb: #aaaaaa;
+            --calt: #ffffff;
+            --actb: #333333;
+            --actt: #ffffff;
+        }
+        * {
+            background: inherit;
+            color: inherit;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+        }
+        body > * {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            max-height: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+
+        ::-webkit-scrollbar {width: 3px; height: 1%;}
+        ::-webkit-scrollbar-thumb {background: var(--text); border-radius: 5px;}
+        ::-webkit-scrollbar-track {box-shadow: unset; border-radius: 5px;}
+
+        button, select {
+            cursor: pointer;
+            padding: 0;
+        }
+        input, select {
+            border: unset;
+            border-bottom: 1px solid var(--text);
+        }
+        p, h1, h2 {
+            display: flex;
+            justify-content: center;
+            align-content: center;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #main, #main_ex {
+            background: var(--back);
+            color: var(--text);
+            display: grid;
+            grid-template-rows: repeat(9, 1fr);
+            grid-template-columns: repeat(7, 1fr);
+        }
+        #main > *, #main_ex > * {
+            height: 100%;
+            width: 100%;
+        }
+
+        #calendar, #calendar_ex {
+            background: var(--calb);
+            color: var(--calt);
+            grid-row: 1/10;
+            grid-column: 1/6;
+        }
+
+        #header, #header_ex {
+            grid-row: 1/3;
+            grid-column: 6/8;
+        }
+        #header, #intro {
+            display: flex;
+            justify-content: space-between;
+            height: 50%;
+            width: 80%;
+            align-self: center;
+            justify-self: center;
+        }
+        #header h1, #intro h1 {
+            flex-grow: 1;
+            text-align: center;
+            text-overflow: ellipsis;
+            max-height: 100%;
+            margin: 0;
+            font-size: larger;
+        }
+        #header button, #intro button {
+            background: inherit;
+            border: none;
+            font-size: 1.5em;
+            margin: 0;
+        }
+
+        #actions, #actions_ex {
+            background: var(--actb);
+            color: var(--actt);
+            grid-row: 3/10;
+            grid-column: 6/8;
+        }
+
+        #calendar, #actions {
+            background: var(--calb);
+            color: var(--calt);
+            display: flex;
+            flex-direction: column;
+        }
+        .arrow {
+            border: none;
+            font-size: inherit;
+        }
+        #timewheel, #actionwheel {
+            background: var(--calt);
+            color: var(--calb);
+            display: flex;
+            justify-content: space-around;
+            height: calc(10% - 2px);
+            width: calc(100% - 2px);
+            border: 1px solid var(--calb);
+            font-size: 24px;
+        }
+        #grid {
+            height: calc(90% - 2px);
+            display: grid;
+            overflow: auto;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: auto 1fr;
+            grid-gap: 1px;
+        }
+        #grid p {
+            height: calc(100% - 2px);
+            width: calc(100% - 2px);
+            border: 1px solid var(--calt);
+            margin: 0;
+        }
+        #timestamps {
+            display: grid;
+            grid-row: 2/3;
+            grid-column: 1/2;
+        }
+        #timestamps > p {
+            width: 100%;
+            max-width: 100%;
+            text-overflow: ellipsis;
+            word-break: break-all;
+        }
+        #weekdays {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-row: 1/2;
+            grid-column: 2/7;
+        }
+        #slots {
+            display: grid;
+            grid-row: 2/3;
+            grid-column: 2/7;
+        }
+        #slots > div {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+        }
+        #slots p {
+            cursor: crosshair;
+        }
+        #slots > div > p {
+            height: calc(100% - 2px);
+            max-height: calc(100% - 2px);
+            overflow-y: auto;
+        }
+        #slots > div > p > p {
+            border: none;
+            width: 100%;
+            max-width: 100%;
+            text-overflow: ellipsis;
+            word-break: break-all;
+        }
+
+        #actions {
+            background: var(--actb);
+            color: var(--actt);
+        }
+        #actions * {
+            border-color: solid var(--actt);
+        }
+        #actionwheel {
+            background: var(--actt);
+            color: var(--actb);
+            border: 1px solid var(--actb);
+        }
+        .actionarea {
+            display: flex;
+            flex-direction: column;
+            max-height: 100%;
+            overflow: auto;
+        }
+        .actionarea::-webkit-scrollbar-thumb {background: var(--actt);}
+
+        #add, #viewer, #viewer > * {
+            height: 100%;
+        }
+        #timelist, #anotations, #timeedit, #edit_anotations {
+            border: 1px solid var(--actt);
+            height: 25%;
+            width: calc(100% - 2px);
+            overflow: auto;
+        }
+        #timelist > div, #timeedit > div {
+            display: flex;
+            justify-content: space-between;
+        }
+        #anotations, #edit_anotations {
+            resize: none;
+        }
+        #add #disc_name {
+            width: 100%;
+        }
+        #add > button, #edit_button {
+            background: var(--actt);
+            color: var(--actb);
+            border-color: var(--actb);
+        }
+
+        #statistics * {
+            margin: 2px;
+            padding: 0;
+        }
+        #statistics > div {
+            display: flex;
+            justify-content: space-around;
+        }
+
+        #config {
+            background: var(--back);
+            color: var(--text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            display: grid;
+            grid-template-rows: 1fr 14fr;
+            height: 100%; max-height: 100%;
+            width: 100%; max-width: 100%;
+        }
+        #config > * {
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        
+        #intro {grid-row: 1/2;}
+        #intro h2 {
+            text-align: center;
+        }
+        #options {
+            grid-row: 2/15;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+        }
+        #options > div {
+            border: 2px solid var(--text);
+            background: var(--back);
+            color: var(--text);
+            height: calc(100% - 2px);
+            width: calc(100% - 2px);
+            overflow: auto;
+        }
+        #data > div > *:not(h2) {
+            width: calc(100% - 10px);
+            margin: 0 5px;
+        }
+
+        #tips {
+            margin: auto;
+            overflow: auto;
+        }
+
+        #theme input {
+            border: 1px solid transparent;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        #theme > div, #theme button {
+            width: 90%;
+            margin: auto;
+        }
+        #container {
+            width: 90%;
+            padding-top: 90%;
+            position: relative;
+            margin: auto;
+        }
+        #main_ex {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            border: 1px solid black;
+        }
+        #theme button {
+            background: var(--text);
+            color: var(--back);
+            margin: 5%;
+        }
+
+        #data {
+            position: relative;
+        }
+        #data > div {
+            height: 80%;
+            max-height: 80%;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        #data > button {
+            position: absolute;
+            bottom: 10px;
+            background: red;
+            color: white;
+            width: 100%;
+        }
+  
+        .hidden {display: none !important;} 
+        .rtext {text-align: right;}
+
+        @media screen and (max-width: 800px) {
+            p, button {
+                font-size: 16px !important;
+            }
+            #timelist button, #timeedit button {
+                font-size: 12px !important;
+            }
+            #actions #current {
+                margin: 0 !important;
+            }
+        }
+        @media screen and (max-width: 800px) and (orientation: portrait) {
+            #main, #main_ex {
+                grid-template-rows: repeat(17, 1fr);
+                grid-template-columns: 1fr;
+            }
+            #calendar, #calendar_ex {
+                background: var(--calb);
+                color: var(--calt);
+                grid-row: 2/12;
+                grid-column: 1/2;
+            }
+            #header, #header_ex {
+                grid-row: 1/2;
+                grid-column: 1/2;
+            }
+            #actions, #actions_ex {
+                grid-row: 12/18;
+                grid-column: 1/2;
+            }
+            #timelist, #anotations, #timeedit, #edit_anotations {
+                height: 15vh;
+                min-height: 15vh;
+            }
+
+            #options {
+                grid-template-rows: 1fr 1fr 1fr;
+                grid-template-columns: 1fr 1fr;
+            }
+            #help {
+                grid-row: 1/3;
+                grid-column: 1/2;
+            }
+            #theme {
+                grid-row: 1/3;
+                grid-column: 2/3;
+            }
+            #data {
+                grid-row: 3/4;
+                grid-column: 1/3;
+            }
+            #data > div {
+                justify-content: unset;
+            }
+
+        }
+    </style>
+</head>
+<body>
+	<div id="main">
+        <div id="calendar">
+            <div id="timewheel">
+                <button class="arrow" onclick="semester(-1)"><</button>
+                <p id="position"> </p>
+                <button class="arrow" onclick="semester( 1)">></button>
+            </div>
+            <div id="grid">
+                <div id="timestamps"></div>
+                <div id="weekdays">
+                    <p>Seg</p>
+                    <p>Ter</p>
+                    <p>Qua</p>
+                    <p>Qui</p>
+                    <p>Sex</p>
+                </div>
+                <div id="slots"></div>
+            </div>
+        </div>
+        <div id="header">
+            <h1 id="title"> </h1>
+            <button onclick="open_el('config')">⚙️</button>
+        </div>
+        <div id="actions">
+            <div id="actionwheel">
+                <button class="arrow" onclick="action(-1)"><</button>
+                <p id="current"> </p>
+                <button class="arrow" onclick="action( 1)">></button>
+            </div>
+            <div id="viewer" class="actionarea" data-name="Disciplina">
+                <p id="no_disc">Nenhuma disciplina selecionada.</p>
+                <div id="view_mode" class="hidden">
+                    <p id="edit_name" contenteditable="true"></p>
+                    <div><label for="edit_peri">Semestre:</label><input type="number" id="edit_peri" min="1" max="16"></div>
+                    <div><label for="edit_type">Tipo:</label><select id="edit_type">
+                        <option value="obr">Obrigatória</option>
+                        <option value="opt">Optativa</option>
+                    </select></div>
+                    <p>Horários</p>
+                    <div id="timeedit">
+                        <div>
+                            Horários escolhidos:
+                            <button onclick="add_tl(timeedit)">Adicionar +</button>
+                        </div>
+                    </div>
+                    <div>
+                        <span for="edit_ch">Carga Horária:</span>
+                        <input type="number" id="edit_ch" class="rtext" min="0" max="999" step="32">
+                        <label for="edit_ch">h</label>
+                    </div>
+                    <p>Anotações</p>
+                    <textarea id="edit_anotations"></textarea>
+                    <div>
+                        <button id="edit_button" onclick="edit_disc()">Salvar Alterações</button>
+                        <button onclick="del_disc()">Excluir Disciplina</button>
+                    </div>
+                </div>
+            </div>
+            <div id="add" class="actionarea hidden" data-name="Nova Disciplina">
+                <p>Dados</p>
+                <div><label for="disc_name">Nome:</label><input type="text" id="disc_name"></div>
+                <div><label for="disc_peri">Semestre:</label><input type="number" id="disc_peri" min="1" max="16"></div>
+                <div><label for="disc_type">Tipo:</label><select id="disc_type">
+                    <option value="obr" selected="selected">Obrigatória</option>
+                    <option value="opt">Optativa</option>
+                </select></div>
+                <p>Horários</p>
+                <div id="timelist">
+                    <div>
+                        Horários escolhidos:
+                        <button onclick="add_tl(timelist)">Adicionar +</button>
+                    </div>
+                </div>
+                <div>
+                    <span for="disc_ch">Carga Horária:</span>
+                    <input type="number" id="disc_ch" class="rtext" min="0" max="999" step="32">
+                    <label for="disc_ch">h</label>
+                </div>
+                <p>Anotações</p>
+                <textarea id="anotations"></textarea>
+                <button onclick="add_disc()">Adicionar Disciplina</button>
+            </div>
+            <div id="statistics" class="actionarea hidden" data-name="Estatísticas">
+                <p>Obrigatórias cursadas</p>
+                <div><p>No total:</p><p id="total_obr"></p></div>
+                <div><p>A cada semestre:</p><p id="per_obr"></p></div>
+                <div><p>Em média:</p><p id="mean_obr"></p></div>
+                <p>Optativas cursadas</p>
+                <div><p>No total:</p><p id="total_opt"></p></div>
+                <div><p>A cada semestre:</p><p id="per_opt"></p></div>
+                <div><p>Em média:</p><p id="mean_opt"></p></div>
+                <p>Carga horária cursada</p>
+                <div><p>Total:</p><p id="total_ch"></p></div>
+                <div><p>A cada semestre:</p><p id="per_ch"></p></div>
+                <div><p>Em média:</p><p id="mean_ch"></p></div>
+                <div><p>Faltando:</p><p id="left_ch"></p></div>
+            </div>
+        </div>
+	</div>
+	<div id="config" class="hidden">
+        <div id="intro">
+            <h1 id="context">Configurações</h1>
+            <button onclick="close_el('config')">✕</button>
+        </div>
+        <div id="options">
+            <div id="help">
+                <h2>Modo de Usar</h2>
+                <ul id="tips">
+                    <li>Este Organizador de Curso possui a Janela Principal e a atual, chamada de Configurações;</li>
+                    <li>A Janela Principal possui 3 divisões: Calendário, Cabeçalho e Central de Ações, e o estilo (cor de fundo mais cor de texto) de cada uma dessas divisões pode ser editado na seção Tema (ao lado);</li>
+                    <li>O Calendário tem como cabeçalho um navegador, que mostra o semestre atual e dois botões (< e >). Clicar no botão < irá ao semestre anterior e clicar no botão > irá ao próximo, ambos de forma circular (primeiro para último / último para primeiro);</li>
+                    <li>O Calendário mostra uma linha de dias da semana e uma coluna de horários, que mapeiam uma divisória bidimensional na forma horário x dia;</li>
+                    <li>Cada elemento da divisória é um Quadro, que agrupa nenhuma, uma ou mais disciplinas. Para adicionar uma disciplina, utilize a Central de Ações;</li>
+                    <li>Como o Calendário, a Central de Ações possui um navegador com as áreas Disciplina, Nova Disciplina e Estatísticas. Os botões < e > se comportam de forma análoga aos do Calendário;</li>
+                    <li>Se nenhuma disciplina for selecionada, a área Disciplina avisará isso. Clique em alguma disciplina para vê-la e poder editá-la;</li>
+                    <li>Utilize o área Nova Disciplina para adicionar uma disciplina ao Calendário, informando Nome, Semestre, Tipo, Horários, Carga Horária e Antoações:</li>
+                    <ul>
+                        <li>O nome não precisa ser oficial (abreviações são bem-vindas), e é possível editá-lo normalmente apesar de sua posição;</li>
+                        <li>O semestre não precisa ser o do Calendário;</li>
+                        <li>O tipo deve ser "obrigatória" ou "optativa" (se inserir uma disciplina X equivalente a outra disciplina Y, utilize o tipo de Y);</li>
+                        <li>Além do botão "Adicionar +", você pode clicar nos Quadros do Calendário para adicionar os respectivos horários;</li>
+                        <li>A carga horária não é automática aos horários, pois disciplinas reprovadas/trancadas/suprimidas devem ter sua ch inserida como 0, e em demais casos deve-se inserir a ch conforme Histórico/Estrutura Curricular;</li>
+                        <li>O campo de anotações é opcional e serve apenas para informações extras;</li>
+                    </ul>
+                    <li>A área de Estatísticas informa quantidades totais, médias, etc. sobre as disciplinas e cargas horárias;</li>
+                    <li>Em Configurações, além desta seção de Modo de Usar e de Tema (mencionado antes), existe a seção de Dados, que pode ser usada para informar o nome do seu curso, o número de semestres, as cargas horárias mínimas de disciplinas obrigatórias e optativas e a divisão de horários:</li>
+                    <ul>
+                        <li>Não é necessário informar o nome do curso;</li>
+                        <li>O número de semestres é importante para o Calendário. Deve ser preenchido ou com todos os semestres feitos ou todos do curso, ficando ciente de que semestres vazios são computados nas estatísticas. Recomenda-se não diminuir o valor, mas é possível fazê-lo e os dados de disciplinas não são perdidos;</li>
+                        <li>As cargas mínimas (para disciplinas obrigatórias e optativas) são utilizadas para a última estatística (carga horária faltando);</li>
+                        <li>A divisão de horários determina o número de linhas do Calendário, e é usado para organizar as disciplinas. Alterar o intervalo entre linhas introduzirá um custo mais alto para organizá-las, sendo recomendado editá-las;</li>
+                    </ul>
+                    <li>Os seus dados (de Dados e do Calendário) são salvos no seu navegador sempre que uma modificação de dado (adição / edição) é feita. Para remover estes dados, utilize o botão ao final da seção de Dados.</li>
+                </ul>
+            </div>
+            <div id="theme">
+                <h2>Tema</h2>
+                <div id="container">
+                    <div id="main_ex">
+                        <div id="calendar_ex">Calendário</div>
+                        <div id="header_ex">Cabeçalho</div>
+                        <div id="actions_ex">Central de Ações</div>
+                    </div>
+                </div>
+                <div id="colors">
+                    <div><input type="color" id="back" /><label for="back">Fundo Principal</label></div>
+                    <div><input type="color" id="text" /><label for="text">Texto Principal</label></div>
+                    <div><input type="color" id="calb" /><label for="calb">Fundo do Calendário</label></div>
+                    <div><input type="color" id="calt" /><label for="calt">Texto do Calendário</label></div>
+                    <div><input type="color" id="actb" /><label for="actb">Fundo da Central de Ações</label></div>
+                    <div><input type="color" id="actt" /><label for="actt">Texto da Central de Ações</label></div>
+                </div>
+                <button onclick="set_colors()">Aplicar</button>
+            </div>
+            <div id="data">
+                <div>
+                    <h2>Seus dados</h2>
+                    <div id="general">
+                        <p>Informações gerais</p>
+                        <div><label for="title_name">Curso:</label><input type="text" id="title_name"></div>
+                        <div><label for="quantity">Nº de semestres:</label><input type="number" id="quantity" min="1" max="16" step="1"></div>
+                        <div><label for="min_obr">Carga mínima p/ obrigatórias:</label><input type="number" min="0" max="99999" id="min_obr" class="rtext"><span>h</span></div>
+                        <div><label for="min_opt">Carga mínima p/ optativas:</label><input type="number" min="0" max="99999" id="min_opt" class="rtext"><span>h</span></div>
+                    </div>
+                    <div id="division">
+                        <p>Seção diária da grade</p>
+                        <label for="range_i"> das </label>
+                        <input type="number" id="range_i" class="rtext" step="1" min="0" max="23">
+                        <label for="range_f">h às </label>
+                        <input type="number" id="range_f" class="rtext" step="1" min="0" max="23">
+                        <label for="interval">h, em intervalos de </label>
+                        <select id="interval" class="rtext">
+                            <option value="15">15 min</option>
+                            <option value="30">30 min</option>
+                            <option value="60">1 h</option>
+                            <option value="120">2 h</option>
+                            <option value="180">3 h</option>
+                            <option value="240">4 h</option>
+                        </select>
+                    </div>
+                    <button onclick="set_data()">Atualizar</button>
+                </div>
+                <button onclick="clear_data()">Limpar dados do sistema</button>
+            </div>
+        </div>
+	</div>
+
+	<script type="text/javascript">
+        function element(id) {
+            return document.getElementById(id);
+        }
+        function elements(className) {
+            return [...(document.getElementsByClassName(className) || [])];
+        }
+        function create(childTag='div', childAttrs={}) {
+            let child= document.createElement(childTag);
+            Object.keys(childAttrs).forEach(attr => child[attr]=childAttrs[attr]);
+            return child;
+        }
+        Node.prototype.elements = function(className) {return [...(this.getElementsByClassName(className) || [])]}
+        Node.prototype.create = function(...arguments) {return this.appendChild(create(...arguments));}
+        Node.prototype.map = function(mapper) {return [...this.children].map(mapper);}
+        Node.prototype.empty = function() {while (this.firstChild) {this.firstChild.remove();}}
+
+        const position = element('position');
+        const title = element('title');
+        const weekdays = element('weekdays').map(p => p.textContent);
+        const timestamps = element('timestamps');
+        const slots = element('slots');
+
+        const no_disc = element('no_disc');
+        const view_mode = element('view_mode');
+        const edit_name = element('edit_name');
+        const edit_peri = element('edit_peri');
+        const edit_type = element('edit_type');
+        const timeedit = element('timeedit');
+        const edit_ch = element('edit_ch');
+        const edit_anotations = element('edit_anotations');
+        var curr_disc = {peri: 1, pos: 0};
+
+        const disc_name = element('disc_name');
+        const disc_peri = element('disc_peri');
+        const disc_type = element('disc_type');
+        const timelist = element('timelist');
+        const disc_ch = element('disc_ch');
+        const anotations = element('anotations');
+
+        const current = element('current');
+        const actions = elements('actionarea').map(el => el.id);
+        const a_names = elements('actionarea').map(el => el.dataset.name);
+        var cur_i = 0;
+
+        const main_ex = element('main_ex');
+        const title_name = element("title_name");
+        const quantity = element("quantity");
+        const min_obr = element("min_obr");
+        const min_opt = element("min_opt");
+        const range_i = element("range_i");
+        const range_f = element("range_f");
+        const interval = element("interval");
+
+        const hidden = 'hidden';
+        Node.prototype.display = function(show) {
+            if (show) {if (this.classList.contains(hidden)) this.classList.remove(hidden);}
+            else {if (!(this.classList.contains(hidden))) this.classList.add(hidden);}
+        }
+        function open_el(id) {element(id).display(true);}
+        function close_el(id) {element(id).display(false);}
+
+        function refresh_all() {document.location.reload(true);}
+
+        const data = {
+            title: 'Seu Curso', 
+            position: 1, 
+            semesters: [[]],
+            min: {obr: 0, opt: 0},
+            theme: {"back":"#c5dfe2","text":"#413e3e","calb":"#ffe875","calt":"#1a1a1a","actb":"#24ff5b","actt":"#464444"},
+            time: {i: 6, f: 22, v: 120}
+        };
+        const storage_key = 'organiza_curso_dt';
+        try {
+            let saved_data = JSON.parse(localStorage.getItem(storage_key));
+            if (saved_data) {
+                data.title = saved_data.title;
+                data.position = saved_data.position;
+                data.semesters = saved_data.semesters;
+                data.min = saved_data.min;
+                data.theme = saved_data.theme;
+                data.time = saved_data.time;
+            }
+        } catch (err) {console.log(err);}
+        function save_data() {
+            localStorage.setItem(storage_key, JSON.stringify(data));
+        }
+        function clear_data() {
+            let ok_to_clear = confirm("Tem certeza de que deseja remover seus dados do Organizador de Curso?");
+            if (ok_to_clear) {localStorage.removeItem(storage_key); refresh_all();}
+        }
+
+        const colors = Object.keys(data.theme);
+        function apply_colors() {
+            colors.forEach(color => {
+                let val = data.theme[color];
+                element(color).value = val;
+                document.documentElement.style.setProperty('--'+color, val);
+            });
+        }
+        function apply_action() {
+            let len = actions.length;
+            while (cur_i<0) {cur_i = len+cur_i;}
+            while (cur_i>=len) {cur_i = cur_i-len;}
+            actions.forEach((act, act_i) => {
+                if (act_i===cur_i) {open_el(act); current.textContent = a_names[cur_i]}
+                else close_el(act);
+            });
+        }
+        class Time {
+            constructor(hh, mm) {this.m = (hh*60)+mm;}
+            add(mm) {this.m += mm;}
+            day() {return Math.floor(this.m/1440);}
+            toString() {
+                let str = "";
+                let h = Math.floor(this.m/60) % 24, m = this.m % 60;
+                if (h<10) str+="0"; str+= h+':';
+                if (m<10) str+="0"; str+= m;
+                return str;
+            }
+            valueOf() {return this.m;}
+        }
+        function apply_time() {
+            let {i, f, v} = data.time;
+            let q = Math.ceil(Math.abs(f-i)*60/v), gtr = "", start, end;
+            timestamps.empty(); slots.empty();
+            let date = new Time(i, 0);
+            for (var k=0; k<q; k++) {
+                start = date.toString();
+                if (k===q-1) {
+                    v = new Time(date.day()+f, 0) - date;
+                }
+                date.add(v);
+                end = date.toString();
+                gtr+= `${v/data.time.v}fr `;
+                timestamps.create('p', {textContent: `${start} - ${end}`});
+                let slot_row = slots.create('div', {id: date+'_'+v});
+                weekdays.forEach((wd,d) => slot_row.create('p', {id: slot_row.id+'_'+d}));
+            }
+            timestamps.style.gridTemplateRows = slots.style.gridTemplateRows = gtr;
+        }
+        function apply_pos() {
+            let len = data.semesters.length;
+            while (data.position<=0) {data.position = len+data.position;}
+            while (data.position>len) {data.position = data.position-len;}
+            position.textContent = data.position+'º semestre';
+            slots.map(row => row.map(p => {
+                p.empty(); p.onclick = () => {
+                    if (cur_i===0) {
+                        no_disc.display(true);
+                        view_mode.display(false);
+                    } else if (cur_i===1) {
+                        let [h, v, d] = p.id.split('_');
+                        add_tl(timelist, d, h+'_'+v);
+                    }
+                }
+            }));
+            let peri = data.position-1;
+            data.semesters[peri].forEach(({n, t, ch, tl, a}, i) => {
+                tl.forEach(id => {
+                    let tl_id = [element(id)];
+                    if (!tl_id[0]) {
+                        let [h, v, d] = id.split('_').map(ival => parseInt(ival));
+                        let hv = slots.map(row => row.id.split('_').map(str => parseInt(str)));
+                        let shv = hv.findIndex(hvi => hvi[0]==h); // mesmo horário final
+                        if (shv<0) {
+                            shv = hv.findIndex(hvi => hvi[0]-hvi[1]==h-v); // mesmo horário inicial
+                            if (shv<0) {
+                                alert("A disciplina "+n+"não possui intervalo de horários adequado ao Calendário. Seu horário foi modificado para o primeiro possível e recomenda-se editá-la logo.");
+                                tl_id[0] = slots.children[0].children[0];
+                            } else {
+                                let ehv = hv.findIndex(hvi => hvi[0]>h)+1;
+                                tl_id = hv.slice(shv, ehv).map(hvi => element(hvi.join('_')+'_'+d));
+                            }
+                        } else {
+                            let rhv = hv.findIndex(hvi => hvi[0]-hvi[1]<h-v);
+                            tl_id = hv.slice(rhv, shv+1).map(hvi => element(hvi.join('_')+'_'+d));
+                        }
+                    }
+                    tl_id.map(tl_pl => {
+                        let tl_p = tl_pl.create('p');
+                        tl_p.textContent = n;
+                        tl_p.style.background = `rgba(0,0,0,${t==='opt'?'0.3':'0.1'})`;
+                        tl_p.onclick = (ev) => {
+                            ev.stopPropagation();
+                            if (cur_i===0) {
+                                curr_disc = {peri: peri, pos: i};
+                                edit_name.textContent = n;
+                                edit_peri.value = peri+1;
+                                edit_type.value = t;
+                                edit_ch.value = ch;
+                                edit_anotations.value = a;
+                                timeedit.elements('tl_item').forEach(el => el.remove());
+                                tl.forEach(id_ => {let [h_, v_, d_] = id_.split('_'); add_tl(timeedit, d_, h_+'_'+v_);});
+                                no_disc.display(false);
+                                view_mode.display(true);
+                            } else if (cur_i===1) {
+                                let [h, v, d] = id.split('_');
+                                add_tl(timelist, d, h+'_'+v);
+                            }
+                        }
+                    });
+                    
+                })
+            });
+        }
+        function apply_stats() {
+            let total = {obr:0, opt:0}, per = {obr:[], opt:[]}; 
+            let total_ch = {obr:0, opt:0}, per_ch = {obr:[], opt:[]}, left_ch = {...data.min}; 
+
+            let n = 0;
+            data.semesters.forEach((sem, sem_i) => {
+                per.obr.push(0); per.opt.push(0);
+                per_ch.obr.push(0); per_ch.opt.push(0);
+                sem.forEach(disc => {
+                    let type = disc.t, ch = disc.ch;
+                    total[type] = total[type]+1;
+                    per[type][sem_i] = per[type][sem_i]+1;
+                    total_ch[type] = total_ch[type]+ch;
+                    per_ch[type][sem_i] = per_ch[type][sem_i]+ch;
+                    left_ch[type] = left_ch[type]-ch;
+                }); n++;
+            })
+            let t_ch = "", p_ch = "", m_ch = "", l_ch = "";
+            Object.keys(total_ch).map((type,k) => {
+                let [t,p,tt,pp,l] = [total,per,total_ch,per_ch,left_ch].map(obj => obj[type]);
+                let s = k===1 ? `h (${type}.)` : `h (${type}.) | `;
+                element(`total_${type}`).textContent = t;
+                element(`per_${type}`).textContent = p.join(', ');
+                element(`mean_${type}`).textContent = t/n;
+                t_ch += `${tt}`; p_ch += `${pp.join('h, ')}`; m_ch += `${tt/n}`; 
+                l_ch += `${l<0 ? `Excesso de ${-l}` : l}${s}`;
+                t_ch += s; p_ch += s; m_ch += s;
+                
+            })
+            element('total_ch').textContent = t_ch;
+            element('per_ch').textContent = p_ch;
+            element('mean_ch').textContent = m_ch;
+            element('left_ch').textContent = l_ch;
+        }
+        function apply_data() {
+            title.textContent = data.title;
+            apply_colors();
+            apply_time();
+            apply_pos();
+            apply_action();
+            apply_stats();
+            title_name.value = data.title;
+            quantity.value = data.semesters.length;
+            min_obr.value = data.min.obr;
+            min_opt.value = data.min.opt;
+            range_i.value = data.time.i;
+            range_f.value = data.time.f;
+            interval.value = data.time.v;
+        }
+        apply_data();
+
+        function semester(dir) {
+            data.position = data.position+dir;
+            save_data();
+            apply_pos();
+        }
+        function action(dir) {
+            cur_i = cur_i+dir;
+            apply_action();
+        }
+        function set_colors() {
+            colors.forEach(color => {
+                let val = element(color).value;
+                data.theme[color] = val;
+                document.documentElement.style.setProperty('--'+color, val);
+            })
+            save_data();
+            alert("Tema atualizado!");
+            refresh_all();
+        }
+        function set_data() {
+            try {
+                let t = title_name.value;
+                let q = parseInt(quantity.value);
+                let m_br = parseInt(min_obr.value);
+                let m_pt = parseInt(min_opt.value);
+                let i = parseInt(range_i.value);
+                let f = parseInt(range_f.value);
+                let v = parseInt(interval.value);
+
+                data.title = t;
+                data.min = {obr: m_br, opt: m_pt};
+                let len = data.semesters.length;
+                if (q<len) {data.semesters = data.semesters.slice(0, q);}
+                else if (q>len) {for (var k=q-len; k>0; k--) data.semesters.push([]);}
+                data.time = {i: i, f: f, v: v};
+                apply_data();
+                save_data();
+                alert("Dados atualizados!");
+                refresh_all();
+            } catch (err) {
+                alert("Erro ao aplicar valores: "+err);
+            }
+        }
+
+        function ex_resized() {
+            let w = window.innerWidth, h = window.innerHeight;
+            if (h<=w) {
+                main_ex.style.height = `${Math.floor(h*100/w)}%`; 
+                main_ex.style.width = "100%";
+            } else {
+                main_ex.style.width = `${Math.floor(w*100/h)}%`; 
+                main_ex.style.height = "100%";
+            }
+        }
+        ex_resized();
+        window.addEventListener('resize', ex_resized);
+
+        function add_tl(list, d, h) {
+            let tl = list.create('div', {className: 'tl_item'});
+            let tl_d = tl.create('select');
+            weekdays.forEach((wd,i) => tl_d.create('option', {value: i, textContent: wd}));
+            tl_d.value = d || 0;
+            let sr_list = slots.map(s => s.id), ts_list = timestamps.map(el => el.textContent);
+            let tl_h = tl.create('select');
+            sr_list.forEach((sr,j) => tl_h.create('option', {value: sr, textContent: ts_list[j]}));
+            tl_h.value = h || sr_list[0];
+            tl.create('button', {textContent: '✕', onclick: () => {tl.remove();}});
+            tl.getId = () => {return tl_h.value+'_'+tl_d.value;}
+        }
+        function add_disc() {
+            try {
+                let dn = disc_name.value; disc_name.value = "";
+                let dp = parseInt(disc_peri.value); disc_peri.value = data.position;
+                let dt = disc_type.value;
+                let dch = parseInt(disc_ch.value);
+                let da = anotations.value;
+
+                let dtl = timelist.elements('tl_item').map(tli => {let tlid = tli.getId(); tli.remove(); return tlid;});
+
+                data.semesters[dp-1].push({n: dn, t: dt, ch: dch, tl: dtl, a: da});
+                save_data();
+                apply_pos();
+                apply_stats();
+            } catch (err) {
+                alert("Erro ao adicionar disciplina: "+err);
+            }
+        }
+        function edit_disc() {
+             try {
+                let dn = edit_name.textContent, dp = parseInt(edit_peri.value), dt = edit_type.value;
+                let dch = parseInt(edit_ch.value), da = edit_anotations.value;
+                let dtl = timeedit.elements('tl_item').map(tli => tli.getId());
+
+                let {peri, pos} = curr_disc; dp--;
+                if (dp!==peri) {
+                    data.semesters[peri] = data.semesters[peri].filter((_,i) => i!==pos);
+                    data.semesters[dp].push({n: dn, t: dt, ch: dch, tl: dtl, a: da});
+                } else {data.semesters[dp][pos] = {n: dn, t: dt, ch: dch, tl: dtl, a: da};}
+                save_data();
+                apply_pos();
+                apply_stats();
+                alert('Alterações salvas!');
+            } catch (err) {
+                alert("Erro ao modificar disciplina: "+err);
+            }             
+        }
+        function del_disc() {
+            let {peri, pos} = curr_disc;
+            let ok_to_del = confirm("Tem certeza de que deseja excluir esta disciplina?");
+            if (ok_to_del) {
+                data.semesters[peri] = data.semesters[peri].filter((_,i) => i!==pos);
+                save_data();
+                alert("Disciplina removida!");
+                refresh_all();
+            }
+        }
+
+	</script>
+</body>
+</html>
